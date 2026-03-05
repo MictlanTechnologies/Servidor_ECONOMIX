@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * Entidad JPA que representa la tabla tbl_usuario.
  *
@@ -34,4 +36,17 @@ public class Usuario {
 
     @Column(name = "contraseñaUsuario", nullable = false, length = 100)
     private String contrasenaUsuario;
+
+    @Column(name = "twoFactorEnabled", nullable = false)
+    @Builder.Default
+    private Boolean twoFactorEnabled = false;
+
+    @Column(name = "twoFactorSecretEncrypted", length = 512)
+    private String twoFactorSecretEncrypted;
+
+    @Column(name = "twoFactorVerifiedAt")
+    private LocalDateTime twoFactorVerifiedAt;
+
+    @Column(name = "lastOtpTimestepUsed")
+    private Long lastOtpTimestepUsed;
 }
