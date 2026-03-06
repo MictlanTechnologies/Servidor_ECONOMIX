@@ -112,3 +112,54 @@ Response
 - Configurar HTTPS obligatorio en gateway/proxy y backend.
 - Configurar CORS para solo los orígenes de ECONOMIX app/web.
 - No habilitar logs de bodies en endpoints auth.
+
+## Configuración de secretos (Spring Boot external config)
+Ahora los secretos **no se leen con `System.getenv(...)` en los servicios**. Se leen como propiedades Spring:
+- `economix.jwt.secret`
+- `economix.2fa.key`
+
+Y en `application.properties` se mapean a variables de entorno:
+- `economix.jwt.secret=${ECONOMIX_JWT_SECRET:}`
+- `economix.2fa.key=${ECONOMIX_2FA_KEY:}`
+
+### Validaciones aplicadas (fail-fast)
+- Si falta `economix.jwt.secret`:
+  - `Missing required property economix.jwt.secret (env: ECONOMIX_JWT_SECRET)`
+- Si `economix.jwt.secret` tiene menos de 32 bytes:
+  - `economix.jwt.secret must have at least 32 bytes`
+- Si falta `economix.2fa.key`:
+  - `Missing required property economix.2fa.key (env: ECONOMIX_2FA_KEY)`
+- Si `economix.2fa.key` no tiene longitud AES válida:
+  - `economix.2fa.key must be 16/24/32 bytes (or base64) for AES`
+
+### Ejemplos de valores válidos
+- JWT secret (mínimo 32 bytes):
+  - Raw: `0123456789abcdef0123456789abcdef`
+  - Base64 equivalente: `MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=`
+- 2FA key AES:
+  - 16 bytes raw: `1234567890abcdef`
+  - 24 bytes raw: `1234567890abcdef12345678`
+  - 32 bytes raw: `0123456789abcdef0123456789abcdef`
+  - O Base64 de una clave de 16/24/32 bytes.
+
+### IntelliJ (Run/Debug Configuration)
+1. Abrir **Run > Edit Configurations...**
+2. Seleccionar tu configuración de Spring Boot (`EconomixBackendApplication`).
+3. En **Environment variables**, agregar:
+   - `ECONOMIX_JWT_SECRET=0123456789abcdef0123456789abcdef`
+   - `ECONOMIX_2FA_KEY=1234567890abcdef`
+4. Guardar y ejecutar.
+
+### Windows CMD
+```cmd
+set ECONOMIX_JWT_SECRET=0123456789abcdef0123456789abcdef
+set ECONOMIX_2FA_KEY=1234567890abcdef
+mvn spring-boot:run
+```
+
+### PowerShell
+```powershell
+$env:ECONOMIX_JWT_SECRET="0123456789abcdef0123456789abcdef"
+$env:ECONOMIX_2FA_KEY="1234567890abcdef"
+mvn spring-boot:run
+```

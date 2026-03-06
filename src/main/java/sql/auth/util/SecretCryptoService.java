@@ -1,6 +1,7 @@
 package sql.auth.util;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -17,14 +18,18 @@ public class SecretCryptoService {
     private static final int GCM_TAG_LENGTH = 128;
     private static final int IV_LENGTH = 12;
     private final SecureRandom secureRandom = new SecureRandom();
+    private final String configuredKey;
 
     private SecretKeySpec key;
 
+    public SecretCryptoService(@Value("${economix.2fa.key:}") String configuredKey) {
+        this.configuredKey = configuredKey;
+    }
+
     @PostConstruct
     public void init() {
-        String configuredKey = System.getenv("ECONOMIX_2FA_KEY");
         if (configuredKey == null || configuredKey.isBlank()) {
-            throw new IllegalStateException("Missing required env var ECONOMIX_2FA_KEY");
+            throw new IllegalStateException("Missing required property economix.2fa.key (env: ECONOMIX_2FA_KEY)");
         }
 
         byte[] raw;
@@ -35,7 +40,7 @@ public class SecretCryptoService {
         }
 
         if (raw.length != 16 && raw.length != 24 && raw.length != 32) {
-            throw new IllegalStateException("ECONOMIX_2FA_KEY must be 16/24/32 bytes (or base64) for AES");
+            throw new IllegalStateException("economix.2fa.key must be 16/24/32 bytes (or base64) for AES");
         }
         this.key = new SecretKeySpec(raw, "AES");
     }

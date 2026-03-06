@@ -3,6 +3,7 @@ package sql.auth.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sql.auth.model.RefreshToken;
 import sql.auth.repository.RefreshTokenRepository;
@@ -23,20 +24,20 @@ public class TokenService {
     private final byte[] jwtSecret;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public TokenService(RefreshTokenRepository refreshTokenRepository) {
+    public TokenService(RefreshTokenRepository refreshTokenRepository,
+                        @Value("${economix.jwt.secret:}") String configuredSecret) {
         this.refreshTokenRepository = refreshTokenRepository;
-        String secret = System.getenv("ECONOMIX_JWT_SECRET");
-        if (secret == null || secret.isBlank()) {
-            throw new IllegalStateException("Missing required env var ECONOMIX_JWT_SECRET");
+        if (configuredSecret == null || configuredSecret.isBlank()) {
+            throw new IllegalStateException("Missing required property economix.jwt.secret (env: ECONOMIX_JWT_SECRET)");
         }
         byte[] raw;
         try {
-            raw = Base64.getDecoder().decode(secret);
+            raw = Base64.getDecoder().decode(configuredSecret);
         } catch (IllegalArgumentException ex) {
-            raw = secret.getBytes(StandardCharsets.UTF_8);
+            raw = configuredSecret.getBytes(StandardCharsets.UTF_8);
         }
         if (raw.length < 32) {
-            throw new IllegalStateException("ECONOMIX_JWT_SECRET must have at least 32 bytes");
+            throw new IllegalStateException("economix.jwt.secret must have at least 32 bytes");
         }
         this.jwtSecret = raw;
     }
