@@ -214,6 +214,56 @@ CREATE INDEX `idIngresos` ON `economix`.`tbl_ahorro` (`idIngresos` ASC) VISIBLE;
 
 SHOW WARNINGS;
 
+
+
+-- -----------------------------------------------------
+-- Table `economix`.`categoria_presupuesto`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `economix`.`categoria_presupuesto` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `usuario_id` INT NOT NULL,
+  `nombre` VARCHAR(80) NOT NULL,
+  `color_hex` VARCHAR(20) NULL,
+  `icon_key` VARCHAR(80) NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_categoria_presupuesto_usuario`
+    FOREIGN KEY (`usuario_id`) REFERENCES `economix`.`tbl_usuario` (`idUsuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE INDEX `idx_categoria_presupuesto_usuario` ON `economix`.`categoria_presupuesto` (`usuario_id` ASC) VISIBLE;
+
+-- -----------------------------------------------------
+-- Table `economix`.`asignacion_presupuesto`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `economix`.`asignacion_presupuesto` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `usuario_id` INT NOT NULL,
+  `ingreso_id` INT NOT NULL,
+  `categoria_id` INT NOT NULL,
+  `monto` DECIMAL(19,2) NOT NULL,
+  `fecha` DATE NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_asignacion_usuario`
+    FOREIGN KEY (`usuario_id`) REFERENCES `economix`.`tbl_usuario` (`idUsuario`),
+  CONSTRAINT `fk_asignacion_ingreso`
+    FOREIGN KEY (`ingreso_id`) REFERENCES `economix`.`tbl_ingresos` (`idIngresos`),
+  CONSTRAINT `fk_asignacion_categoria`
+    FOREIGN KEY (`categoria_id`) REFERENCES `economix`.`categoria_presupuesto` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE INDEX `idx_asignacion_usuario_fecha` ON `economix`.`asignacion_presupuesto` (`usuario_id` ASC, `fecha` ASC) VISIBLE;
+CREATE INDEX `idx_asignacion_ingreso_fecha` ON `economix`.`asignacion_presupuesto` (`ingreso_id` ASC, `fecha` ASC) VISIBLE;
+CREATE INDEX `idx_asignacion_categoria_fecha` ON `economix`.`asignacion_presupuesto` (`categoria_id` ASC, `fecha` ASC) VISIBLE;
+
+ALTER TABLE `economix`.`tbl_gastos`
+  ADD COLUMN IF NOT EXISTS `categoria_id` INT NULL,
+  ADD INDEX IF NOT EXISTS `idx_tbl_gastos_categoria_id` (`categoria_id` ASC),
+  ADD INDEX IF NOT EXISTS `idx_tbl_gastos_usuario_fecha` (`idUsuario` ASC, `fechaGastos` ASC),
+  ADD CONSTRAINT `fk_tbl_gastos_categoria_presupuesto`
+    FOREIGN KEY (`categoria_id`) REFERENCES `economix`.`categoria_presupuesto` (`id`);
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

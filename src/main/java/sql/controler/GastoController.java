@@ -65,6 +65,7 @@ public class GastoController {
                 .montoGasto(gasto.getMontoGasto())
                 .fechaGastos(gasto.getFechaGastos())
                 .periodoGastos(gasto.getPeriodoGastos())
+                .idCategoriaPresupuesto(gasto.getIdCategoriaPresupuesto())
                 .build();
     }
 
@@ -77,6 +78,7 @@ public class GastoController {
                 .montoGasto(dto.getMontoGasto())
                 .fechaGastos(dto.getFechaGastos())
                 .periodoGastos(dto.getPeriodoGastos())
+                .idCategoriaPresupuesto(dto.getIdCategoriaPresupuesto())
                 .build();
     }
 }

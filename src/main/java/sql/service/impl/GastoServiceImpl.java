@@ -1,11 +1,12 @@
 package sql.service.impl;
 
-import sql.model.Gasto;
-import sql.repository.GastoRepository;
-import sql.service.GastoService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import sql.model.Gasto;
+import sql.repository.GastoRepository;
+import sql.service.GastoService;
+import sql.service.PresupuestoService;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 public class GastoServiceImpl implements GastoService {
 
     private final GastoRepository gastoRepository;
+    private final PresupuestoService presupuestoService;
 
     @Override
     public List<Gasto> getAll() {
@@ -27,6 +29,13 @@ public class GastoServiceImpl implements GastoService {
 
     @Override
     public Gasto save(Gasto gasto) {
+        presupuestoService.validarGastoEnCategoria(
+                gasto.getIdUsuario(),
+                gasto.getIdCategoriaPresupuesto(),
+                gasto.getMontoGasto(),
+                gasto.getFechaGastos(),
+                null
+        );
         return gastoRepository.save(gasto);
     }
 
@@ -40,6 +49,13 @@ public class GastoServiceImpl implements GastoService {
         return gastoRepository.findById(id)
                 .map(existing -> {
                     BeanUtils.copyProperties(gasto, existing, "idGastos");
+                    presupuestoService.validarGastoEnCategoria(
+                            existing.getIdUsuario(),
+                            existing.getIdCategoriaPresupuesto(),
+                            existing.getMontoGasto(),
+                            existing.getFechaGastos(),
+                            existing.getIdGastos()
+                    );
                     return gastoRepository.save(existing);
                 })
                 .orElse(null);

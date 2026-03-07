@@ -32,4 +32,7 @@ public class GastoDto {
     private BigDecimal montoGasto;
     private LocalDate fechaGastos;
     private String periodoGastos;
+
+    @JsonAlias({"categoriaId"})
+    private Integer idCategoriaPresupuesto;
 }
