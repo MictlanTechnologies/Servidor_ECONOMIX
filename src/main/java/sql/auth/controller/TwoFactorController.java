@@ -1,10 +1,13 @@
 package sql.auth.controller;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sql.auth.dto.AuthDtos;
+import sql.auth.exception.AuthExceptions.BadRequestAuthException;
+import sql.auth.exception.AuthExceptions.UnauthorizedAuthException;
 import sql.auth.service.TokenService;
 import sql.auth.service.TwoFactorService;
 
@@ -29,6 +32,9 @@ public class TwoFactorController {
     @PostMapping("/enable")
     public ResponseEntity<AuthDtos.TwoFactorToggleResponse> enable(@RequestBody AuthDtos.TwoFactorOtpRequest request,
                                                                     HttpServletRequest httpRequest) {
+        if (request == null || request.getOtpCode() == null || request.getOtpCode().isBlank()) {
+            throw new BadRequestAuthException("otpCode es obligatorio");
+        }
         Integer userId = extractUserId(httpRequest);
         return ResponseEntity.ok(twoFactorService.enable(userId, request.getOtpCode()));
     }
@@ -36,6 +42,9 @@ public class TwoFactorController {
     @PostMapping("/disable")
     public ResponseEntity<AuthDtos.TwoFactorToggleResponse> disable(@RequestBody AuthDtos.TwoFactorOtpRequest request,
                                                                      HttpServletRequest httpRequest) {
+        if (request == null || request.getOtpCode() == null || request.getOtpCode().isBlank()) {
+            throw new BadRequestAuthException("otpCode es obligatorio");
+        }
         Integer userId = extractUserId(httpRequest);
         return ResponseEntity.ok(twoFactorService.disable(userId, request.getOtpCode()));
     }
@@ -43,11 +52,18 @@ public class TwoFactorController {
     private Integer extractUserId(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Authorization Bearer token requerido");
+            throw new UnauthorizedAuthException("Authorization Bearer token requerido");
         }
         String token = authHeader.substring(7);
-        Claims claims = tokenService.parseAccessToken(token);
-        Number userId = (Number) claims.get("userId");
-        return userId.intValue();
+        try {
+            Claims claims = tokenService.parseAccessToken(token);
+            Number userId = (Number) claims.get("userId");
+            if (userId == null) {
+                throw new UnauthorizedAuthException("Bearer token inválido");
+            }
+            return userId.intValue();
+        } catch (JwtException | ClassCastException ex) {
+            throw new UnauthorizedAuthException("Bearer token inválido");
+        }
     }
 }

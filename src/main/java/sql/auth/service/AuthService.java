@@ -2,6 +2,12 @@ package sql.auth.service;
 
 import org.springframework.stereotype.Service;
 import sql.auth.dto.AuthDtos;
+import sql.auth.exception.AuthExceptions.BadRequestAuthException;
+import sql.auth.exception.AuthExceptions.ChallengeExpiredException;
+import sql.auth.exception.AuthExceptions.InvalidCredentialsException;
+import sql.auth.exception.AuthExceptions.InvalidOtpException;
+import sql.auth.exception.AuthExceptions.TooManyAttemptsException;
+import sql.auth.exception.AuthExceptions.UnauthorizedAuthException;
 import sql.auth.model.AuthChallenge;
 import sql.auth.model.RefreshToken;
 import sql.auth.repository.AuthChallengeRepository;
@@ -35,13 +41,17 @@ public class AuthService {
     }
 
     public AuthDtos.AuthResponse login(AuthDtos.LoginRequest request, String ip, String deviceInfo) {
+        if (request == null || isBlank(request.getUsernameOrEmail()) || isBlank(request.getPassword())) {
+            throw new BadRequestAuthException("usernameOrEmail y password son obligatorios");
+        }
+
         if (!rateLimiter.allow("login:" + ip + ":" + request.getUsernameOrEmail(), 10, 60)) {
-            throw new IllegalArgumentException("Demasiados intentos de login");
+            throw new TooManyAttemptsException("Demasiados intentos de login");
         }
 
         Usuario user = usuarioRepository.findByPerfilUsuario(request.getUsernameOrEmail()).orElse(null);
         if (user == null || !request.getPassword().equals(user.getContrasenaUsuario())) {
-            throw new IllegalArgumentException("Credenciales inválidas");
+            throw new InvalidCredentialsException("Credenciales inválidas");
         }
 
         if (Boolean.TRUE.equals(user.getTwoFactorEnabled())) {
@@ -63,18 +73,26 @@ public class AuthService {
     }
 
     public AuthDtos.AuthResponse verifyTwoFactor(AuthDtos.TwoFactorVerifyRequest request, String ip, String deviceInfo) {
+        if (request == null || isBlank(request.getChallengeId()) || isBlank(request.getOtpCode())) {
+            throw new BadRequestAuthException("challengeId y otpCode son obligatorios");
+        }
+
         if (!rateLimiter.allow("verify2fa:" + ip + ":" + request.getChallengeId(), 10, 60)) {
-            throw new IllegalArgumentException("Demasiados intentos de verificación OTP");
+            throw new TooManyAttemptsException("Demasiados intentos de verificación OTP");
         }
 
-        AuthChallenge challenge = authChallengeRepository.findById(request.getChallengeId()).orElseThrow(() -> new IllegalArgumentException("Challenge inválido"));
+        AuthChallenge challenge = authChallengeRepository.findById(request.getChallengeId())
+                .orElseThrow(() -> new BadRequestAuthException("challengeId inválido"));
+
         if (challenge.getConsumedAt() != null || challenge.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Challenge expirado o ya consumido");
+            throw new ChallengeExpiredException("Challenge expirado o ya consumido");
         }
 
-        Usuario user = usuarioRepository.findById(challenge.getUserId()).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        Usuario user = usuarioRepository.findById(challenge.getUserId())
+                .orElseThrow(() -> new UnauthorizedAuthException("Usuario no autorizado"));
+
         if (!twoFactorService.verifyForLogin(user, request.getOtpCode())) {
-            throw new IllegalArgumentException("OTP inválido o reutilizado");
+            throw new InvalidOtpException("OTP inválido o reutilizado");
         }
 
         challenge.setConsumedAt(LocalDateTime.now());
@@ -84,14 +102,24 @@ public class AuthService {
     }
 
     public AuthDtos.RefreshResponse refresh(AuthDtos.RefreshRequest request) {
-        RefreshToken valid = tokenService.validateRefreshToken(request.getRefreshToken());
-        if (valid == null) {
-            throw new IllegalArgumentException("Refresh token inválido");
+        if (request == null || isBlank(request.getRefreshToken())) {
+            throw new BadRequestAuthException("refreshToken es obligatorio");
         }
 
-        Usuario user = usuarioRepository.findById(valid.getUserId()).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        RefreshToken valid = tokenService.validateRefreshToken(request.getRefreshToken());
+        if (valid == null) {
+            throw new UnauthorizedAuthException("Refresh token inválido");
+        }
+
+        Usuario user = usuarioRepository.findById(valid.getUserId())
+                .orElseThrow(() -> new UnauthorizedAuthException("Usuario no autorizado"));
+
         String newAccessToken = tokenService.generateAccessToken(user.getIdUsuario(), List.of("USER"));
         String rotatedRefresh = tokenService.rotateRefreshToken(request.getRefreshToken());
+
+        if (rotatedRefresh == null) {
+            throw new UnauthorizedAuthException("Refresh token inválido");
+        }
 
         return AuthDtos.RefreshResponse.builder()
                 .accessToken(newAccessToken)
@@ -100,6 +128,9 @@ public class AuthService {
     }
 
     public void logout(AuthDtos.LogoutRequest request) {
+        if (request == null || isBlank(request.getRefreshToken())) {
+            throw new BadRequestAuthException("refreshToken es obligatorio");
+        }
         tokenService.revokeRefreshToken(request.getRefreshToken());
     }
 
@@ -118,5 +149,9 @@ public class AuthService {
                         .twoFactorEnabled(Boolean.TRUE.equals(user.getTwoFactorEnabled()))
                         .build())
                 .build();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

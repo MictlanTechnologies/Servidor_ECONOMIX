@@ -163,3 +163,11 @@ $env:ECONOMIX_JWT_SECRET="0123456789abcdef0123456789abcdef"
 $env:ECONOMIX_2FA_KEY="1234567890abcdef"
 mvn spring-boot:run
 ```
+
+
+### Defaults para desarrollo local
+En este proyecto, `application.properties` define defaults solo para entorno local:
+- `economix.jwt.secret=${ECONOMIX_JWT_SECRET:0123456789abcdef0123456789abcdef}`
+- `economix.2fa.key=${ECONOMIX_2FA_KEY:1234567890abcdef}`
+
+En producción, debes sobreescribirlos con variables de entorno seguras.
