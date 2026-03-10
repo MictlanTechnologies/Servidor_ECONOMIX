@@ -30,16 +30,23 @@ public class TokenService {
         if (configuredSecret == null || configuredSecret.isBlank()) {
             throw new IllegalStateException("Missing required property economix.jwt.secret (env: ECONOMIX_JWT_SECRET)");
         }
-        byte[] raw;
-        try {
-            raw = Base64.getDecoder().decode(configuredSecret);
-        } catch (IllegalArgumentException ex) {
-            raw = configuredSecret.getBytes(StandardCharsets.UTF_8);
+        byte[] rawUtf8 = configuredSecret.getBytes(StandardCharsets.UTF_8);
+        if (rawUtf8.length >= 32) {
+            this.jwtSecret = rawUtf8;
+            return;
         }
-        if (raw.length < 32) {
+
+        byte[] decodedBase64;
+        try {
+            decodedBase64 = Base64.getDecoder().decode(configuredSecret);
+        } catch (IllegalArgumentException ex) {
             throw new IllegalStateException("economix.jwt.secret must have at least 32 bytes");
         }
-        this.jwtSecret = raw;
+
+        if (decodedBase64.length < 32) {
+            throw new IllegalStateException("economix.jwt.secret must have at least 32 bytes");
+        }
+        this.jwtSecret = decodedBase64;
     }
 
     public String generateAccessToken(Integer userId, List<String> roles) {

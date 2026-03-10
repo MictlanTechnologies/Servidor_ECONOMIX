@@ -32,17 +32,23 @@ public class SecretCryptoService {
             throw new IllegalStateException("Missing required property economix.2fa.key (env: ECONOMIX_2FA_KEY)");
         }
 
-        byte[] raw;
-        try {
-            raw = Base64.getDecoder().decode(configuredKey);
-        } catch (IllegalArgumentException ex) {
-            raw = configuredKey.getBytes(StandardCharsets.UTF_8);
+        byte[] rawUtf8 = configuredKey.getBytes(StandardCharsets.UTF_8);
+        if (rawUtf8.length == 16 || rawUtf8.length == 24 || rawUtf8.length == 32) {
+            this.key = new SecretKeySpec(rawUtf8, "AES");
+            return;
         }
 
-        if (raw.length != 16 && raw.length != 24 && raw.length != 32) {
+        byte[] decodedBase64;
+        try {
+            decodedBase64 = Base64.getDecoder().decode(configuredKey);
+        } catch (IllegalArgumentException ex) {
             throw new IllegalStateException("economix.2fa.key must be 16/24/32 bytes (or base64) for AES");
         }
-        this.key = new SecretKeySpec(raw, "AES");
+
+        if (decodedBase64.length != 16 && decodedBase64.length != 24 && decodedBase64.length != 32) {
+            throw new IllegalStateException("economix.2fa.key must be 16/24/32 bytes (or base64) for AES");
+        }
+        this.key = new SecretKeySpec(decodedBase64, "AES");
     }
 
     public String encrypt(String plainText) {
