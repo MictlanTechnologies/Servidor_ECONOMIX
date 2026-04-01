@@ -1,7 +1,7 @@
 package ai.controller;
 
 import ai.dto.AiChatResponse;
-import ai.service.AIChatService;
+import ai.service.AiChatService;
 import ai.service.AIDataService;
 import ai.service.ForecastService;
 import ai.service.InferentialStatsService;
@@ -39,7 +39,7 @@ class AIControllerTest {
     @MockBean private AIDataService aiDataService;
     @MockBean private ForecastService forecastService;
     @MockBean private InferentialStatsService inferentialStatsService;
-    @MockBean private AIChatService aiChatService;
+    @MockBean private AiChatService aiChatService;
     @MockBean private CurrentUserService currentUserService;
 
     @Test

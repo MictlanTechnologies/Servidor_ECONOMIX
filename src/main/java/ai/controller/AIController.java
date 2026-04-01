@@ -1,7 +1,7 @@
 package ai.controller;
 
 import ai.dto.*;
-import ai.service.AIChatService;
+import ai.service.AiChatService;
 import ai.service.AIDataService;
 import ai.service.ForecastService;
 import ai.service.InferentialStatsService;
@@ -31,7 +31,7 @@ public class AIController {
     private final AIDataService aiDataService;
     private final ForecastService forecastService;
     private final InferentialStatsService inferentialStatsService;
-    private final AIChatService aiChatService;
+    private final AiChatService aiChatService;
     private final CurrentUserService currentUserService;
 
     @GetMapping("/summary")
