@@ -1,14 +1,13 @@
 package sql.controler;
 
-import sql.dto.AhorroDto;
-import sql.model.Ahorro;
-import sql.service.AhorroService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sql.dto.AhorroDto;
+import sql.model.Ahorro;
+import sql.service.AhorroService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/economix/api/ahorros")
@@ -19,11 +18,11 @@ public class AhorroController {
 
     @GetMapping
     public ResponseEntity<List<AhorroDto>> getAll() {
-        List<Ahorro> ahorros = ahorroService.getAll();
-        if (ahorros == null || ahorros.isEmpty()) {
+        List<AhorroDto> items = ahorroService.getAll().stream().map(this::toDto).toList();
+        if (items.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(ahorros.stream().map(this::toDto).collect(Collectors.toList()));
+        return ResponseEntity.ok(items);
     }
 
     @GetMapping("/{id}")
@@ -37,8 +36,7 @@ public class AhorroController {
 
     @PostMapping
     public ResponseEntity<AhorroDto> save(@RequestBody AhorroDto ahorroDto) {
-        Ahorro ahorro = ahorroService.save(toEntity(ahorroDto));
-        return ResponseEntity.ok(toDto(ahorro));
+        return ResponseEntity.ok(toDto(ahorroService.save(toEntity(ahorroDto))));
     }
 
     @PutMapping("/{id}")
@@ -59,6 +57,12 @@ public class AhorroController {
     private AhorroDto toDto(Ahorro ahorro) {
         return AhorroDto.builder()
                 .idAhorro(ahorro.getIdAhorro())
+                .idUsuario(ahorro.getIdUsuario())
+                .nombreObjetivo(ahorro.getNombreObjetivo())
+                .descripcionObjetivo(ahorro.getDescripcionObjetivo())
+                .meta(ahorro.getMeta())
+                .montoAhorrado(ahorro.getMontoAhorrado())
+                .fechaLimite(ahorro.getFechaLimite())
                 .idIngresos(ahorro.getIdIngresos())
                 .montoAhorro(ahorro.getMontoAhorro())
                 .periodoTAhorro(ahorro.getPeriodoTAhorro())
@@ -70,6 +74,12 @@ public class AhorroController {
     private Ahorro toEntity(AhorroDto dto) {
         return Ahorro.builder()
                 .idAhorro(dto.getIdAhorro())
+                .idUsuario(dto.getIdUsuario())
+                .nombreObjetivo(dto.getNombreObjetivo())
+                .descripcionObjetivo(dto.getDescripcionObjetivo())
+                .meta(dto.getMeta())
+                .montoAhorrado(dto.getMontoAhorrado())
+                .fechaLimite(dto.getFechaLimite())
                 .idIngresos(dto.getIdIngresos())
                 .montoAhorro(dto.getMontoAhorro())
                 .periodoTAhorro(dto.getPeriodoTAhorro())

@@ -14,13 +14,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * Entidad JPA para la tabla tbl_gastos.
- *
- * Importante: en el script SQL del proyecto, algunas columnas usan acentos:
- *  - `descripciónGasto`
- *  - `artículoGasto`
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -50,4 +43,10 @@ public class Gasto {
 
     @Column(name = "idUsuario", nullable = false)
     private Integer idUsuario;
+
+    @Column(name = "idCategoria")
+    private Integer idCategoria;
+
+    @Column(name = "idPresupuesto")
+    private Integer idPresupuesto;
 }

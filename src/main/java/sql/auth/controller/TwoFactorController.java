@@ -1,14 +1,13 @@
 package sql.auth.controller;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import sql.auth.dto.AuthDtos;
 import sql.auth.exception.AuthExceptions.BadRequestAuthException;
-import sql.auth.exception.AuthExceptions.UnauthorizedAuthException;
-import sql.auth.service.TokenService;
+import sql.auth.security.CurrentUserService;
 import sql.auth.service.TwoFactorService;
 
 @RestController
@@ -16,54 +15,31 @@ import sql.auth.service.TwoFactorService;
 public class TwoFactorController {
 
     private final TwoFactorService twoFactorService;
-    private final TokenService tokenService;
+    private final CurrentUserService currentUserService;
 
-    public TwoFactorController(TwoFactorService twoFactorService, TokenService tokenService) {
+    public TwoFactorController(TwoFactorService twoFactorService, CurrentUserService currentUserService) {
         this.twoFactorService = twoFactorService;
-        this.tokenService = tokenService;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping("/setup")
-    public ResponseEntity<AuthDtos.TwoFactorSetupResponse> setup(HttpServletRequest request) {
-        Integer userId = extractUserId(request);
-        return ResponseEntity.ok(twoFactorService.setup(userId));
+    public ResponseEntity<AuthDtos.TwoFactorSetupResponse> setup() {
+        return ResponseEntity.ok(twoFactorService.setup(currentUserService.getRequiredUserId()));
     }
 
     @PostMapping("/enable")
-    public ResponseEntity<AuthDtos.TwoFactorToggleResponse> enable(@RequestBody AuthDtos.TwoFactorOtpRequest request,
-                                                                    HttpServletRequest httpRequest) {
+    public ResponseEntity<AuthDtos.TwoFactorToggleResponse> enable(@RequestBody AuthDtos.TwoFactorOtpRequest request) {
         if (request == null || request.getOtpCode() == null || request.getOtpCode().isBlank()) {
             throw new BadRequestAuthException("otpCode es obligatorio");
         }
-        Integer userId = extractUserId(httpRequest);
-        return ResponseEntity.ok(twoFactorService.enable(userId, request.getOtpCode()));
+        return ResponseEntity.ok(twoFactorService.enable(currentUserService.getRequiredUserId(), request.getOtpCode()));
     }
 
     @PostMapping("/disable")
-    public ResponseEntity<AuthDtos.TwoFactorToggleResponse> disable(@RequestBody AuthDtos.TwoFactorOtpRequest request,
-                                                                     HttpServletRequest httpRequest) {
+    public ResponseEntity<AuthDtos.TwoFactorToggleResponse> disable(@RequestBody AuthDtos.TwoFactorOtpRequest request) {
         if (request == null || request.getOtpCode() == null || request.getOtpCode().isBlank()) {
             throw new BadRequestAuthException("otpCode es obligatorio");
         }
-        Integer userId = extractUserId(httpRequest);
-        return ResponseEntity.ok(twoFactorService.disable(userId, request.getOtpCode()));
-    }
-
-    private Integer extractUserId(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new UnauthorizedAuthException("Authorization Bearer token requerido");
-        }
-        String token = authHeader.substring(7);
-        try {
-            Claims claims = tokenService.parseAccessToken(token);
-            Number userId = (Number) claims.get("userId");
-            if (userId == null) {
-                throw new UnauthorizedAuthException("Bearer token inválido");
-            }
-            return userId.intValue();
-        } catch (JwtException | ClassCastException ex) {
-            throw new UnauthorizedAuthException("Bearer token inválido");
-        }
+        return ResponseEntity.ok(twoFactorService.disable(currentUserService.getRequiredUserId(), request.getOtpCode()));
     }
 }

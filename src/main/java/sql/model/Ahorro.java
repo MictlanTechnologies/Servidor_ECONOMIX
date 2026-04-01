@@ -14,17 +14,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * Entidad JPA para la tabla tbl_ahorro.
- *
- * Columnas según el script SQL del proyecto:
- *  - idAhorro (PK)
- *  - fechaAhorro
- *  - fechaActualizaciónA
- *  - periodoTAhorro
- *  - montoAhorro
- *  - idIngresos (FK)
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,10 +26,27 @@ public class Ahorro {
     @Column(name = "idAhorro")
     private Integer idAhorro;
 
+    @Column(name = "idUsuario")
+    private Integer idUsuario;
+
+    @Column(name = "nombreObjetivo", length = 120)
+    private String nombreObjetivo;
+
+    @Column(name = "descripcionObjetivo")
+    private String descripcionObjetivo;
+
+    @Column(name = "meta")
+    private BigDecimal meta;
+
+    @Column(name = "montoAhorrado")
+    private BigDecimal montoAhorrado;
+
+    @Column(name = "fechaLimite")
+    private LocalDate fechaLimite;
+
     @Column(name = "fechaAhorro")
     private LocalDate fechaAhorro;
 
-    // En MySQL el nombre de columna tiene acento.
     @Column(name = "fechaActualizaciónA")
     private LocalDate fechaActualizacionA;
 

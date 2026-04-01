@@ -1,14 +1,13 @@
 package sql.controler;
 
-import sql.dto.GastoDto;
-import sql.model.Gasto;
-import sql.service.GastoService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sql.dto.GastoDto;
+import sql.model.Gasto;
+import sql.service.GastoService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/economix/api/gastos")
@@ -19,11 +18,11 @@ public class GastoController {
 
     @GetMapping
     public ResponseEntity<List<GastoDto>> getAll() {
-        List<Gasto> gastos = gastoService.getAll();
-        if (gastos == null || gastos.isEmpty()) {
+        List<GastoDto> items = gastoService.getAll().stream().map(this::toDto).toList();
+        if (items.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(gastos.stream().map(this::toDto).collect(Collectors.toList()));
+        return ResponseEntity.ok(items);
     }
 
     @GetMapping("/{id}")
@@ -37,8 +36,7 @@ public class GastoController {
 
     @PostMapping
     public ResponseEntity<GastoDto> save(@RequestBody GastoDto dto) {
-        Gasto gasto = gastoService.save(toEntity(dto));
-        return ResponseEntity.ok(toDto(gasto));
+        return ResponseEntity.ok(toDto(gastoService.save(toEntity(dto))));
     }
 
     @PutMapping("/{id}")
@@ -65,6 +63,8 @@ public class GastoController {
                 .montoGasto(gasto.getMontoGasto())
                 .fechaGastos(gasto.getFechaGastos())
                 .periodoGastos(gasto.getPeriodoGastos())
+                .idCategoria(gasto.getIdCategoria())
+                .idPresupuesto(gasto.getIdPresupuesto())
                 .build();
     }
 
@@ -77,6 +77,8 @@ public class GastoController {
                 .montoGasto(dto.getMontoGasto())
                 .fechaGastos(dto.getFechaGastos())
                 .periodoGastos(dto.getPeriodoGastos())
+                .idCategoria(dto.getIdCategoria())
+                .idPresupuesto(dto.getIdPresupuesto())
                 .build();
     }
 }

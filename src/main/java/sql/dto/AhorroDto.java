@@ -9,21 +9,24 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * DTO alineado a la app Android (AhorroDto del frontend) y a la tabla tbl_ahorro.
- */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AhorroDto {
     private Integer idAhorro;
+    private Integer idUsuario;
+    private String nombreObjetivo;
+    private String descripcionObjetivo;
+    private BigDecimal meta;
+    private BigDecimal montoAhorrado;
+    private LocalDate fechaLimite;
+
     private Integer idIngresos;
     private BigDecimal montoAhorro;
     private String periodoTAhorro;
     private LocalDate fechaAhorro;
 
-    // En la BD el nombre puede venir con acento (fechaActualizaciónA).
     @JsonAlias({"fechaActualizaciónA"})
     private LocalDate fechaActualizacionA;
 }

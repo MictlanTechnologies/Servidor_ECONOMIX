@@ -1,12 +1,13 @@
 package sql.service.impl;
 
-import sql.model.Ahorro;
-import sql.repository.AhorroRepository;
-import sql.service.AhorroService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import sql.model.Ahorro;
+import sql.repository.AhorroRepository;
+import sql.service.AhorroService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -27,6 +28,7 @@ public class AhorroServiceImpl implements AhorroService {
 
     @Override
     public Ahorro save(Ahorro ahorro) {
+        syncLegacyFields(ahorro);
         return ahorroRepository.save(ahorro);
     }
 
@@ -40,8 +42,24 @@ public class AhorroServiceImpl implements AhorroService {
         return ahorroRepository.findById(id)
                 .map(existing -> {
                     BeanUtils.copyProperties(ahorro, existing, "idAhorro");
+                    syncLegacyFields(existing);
                     return ahorroRepository.save(existing);
                 })
                 .orElse(null);
+    }
+
+    private void syncLegacyFields(Ahorro ahorro) {
+        if (ahorro.getMontoAhorrado() == null && ahorro.getMontoAhorro() != null) {
+            ahorro.setMontoAhorrado(ahorro.getMontoAhorro());
+        }
+        if (ahorro.getMontoAhorro() == null && ahorro.getMontoAhorrado() != null) {
+            ahorro.setMontoAhorro(ahorro.getMontoAhorrado());
+        }
+        if (ahorro.getMeta() == null && ahorro.getMontoAhorro() != null) {
+            ahorro.setMeta(ahorro.getMontoAhorro());
+        }
+        if (ahorro.getMeta() == null) {
+            ahorro.setMeta(BigDecimal.ZERO);
+        }
     }
 }

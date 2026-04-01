@@ -9,12 +9,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * DTO alineado a la app Android.
- *
- * En MySQL algunos nombres de columna llevan acentos (descripciónGasto, artículoGasto),
- * por eso aceptamos ambas variantes en JSON con @JsonAlias.
- */
 @Data
 @Builder
 @AllArgsConstructor
@@ -32,4 +26,6 @@ public class GastoDto {
     private BigDecimal montoGasto;
     private LocalDate fechaGastos;
     private String periodoGastos;
+    private Integer idCategoria;
+    private Integer idPresupuesto;
 }

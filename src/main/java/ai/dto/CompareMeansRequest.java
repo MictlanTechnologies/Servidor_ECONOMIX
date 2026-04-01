@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CompareMeansRequest {
-    private Integer userId;
     private LocalDate fromA;
     private LocalDate toA;
     private LocalDate fromB;

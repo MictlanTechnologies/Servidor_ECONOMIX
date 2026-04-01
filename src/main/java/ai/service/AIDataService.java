@@ -1,5 +1,7 @@
 package ai.service;
 
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 import sql.model.Ahorro;
 import sql.model.CategoriaGasto;
 import sql.model.Gasto;
@@ -12,8 +14,6 @@ import sql.repository.GastoRepository;
 import sql.repository.IngresoRepository;
 import sql.repository.MovimientoAhorroRepository;
 import sql.repository.PresupuestoRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,32 +32,27 @@ public class AIDataService {
     private final MovimientoAhorroRepository movimientoAhorroRepository;
 
     public List<Gasto> getGastos(Integer userId, LocalDate from, LocalDate to, Integer categoryId) {
-        return gastoRepository.findAll().stream()
-                .filter(g -> userId.equals(g.getIdUsuario()))
-                .filter(g -> categoryId == null || categoryId.equals(g.getIdCategoria()))
-                .filter(g -> inRange(g.getFechaGastos(), from, to))
-                .collect(Collectors.toList());
+        validateDateRange(from, to);
+        if (categoryId == null) {
+            return gastoRepository.findByIdUsuarioAndFechaGastosBetween(userId, from, to);
+        }
+        return gastoRepository.findByIdUsuarioAndFechaGastosBetweenAndIdCategoria(userId, from, to, categoryId);
     }
 
     public List<Ingreso> getIngresos(Integer userId, LocalDate from, LocalDate to) {
-        return ingresoRepository.findAll().stream()
-                .filter(i -> userId.equals(i.getIdUsuario()))
-                .filter(i -> inRange(i.getFechaIngresos(), from, to))
-                .collect(Collectors.toList());
+        validateDateRange(from, to);
+        return ingresoRepository.findByIdUsuarioAndFechaIngresosBetween(userId, from, to);
     }
 
     public List<Presupuesto> getPresupuestos(Integer userId, Integer month, Integer year) {
-        return presupuestoRepository.findAll().stream()
-                .filter(p -> userId.equals(p.getIdUsuario()))
-                .filter(p -> month == null || month.equals(p.getMes()))
-                .filter(p -> year == null || year.equals(p.getAnio()))
-                .collect(Collectors.toList());
+        if (month == null || year == null) {
+            throw new IllegalArgumentException("month y year son obligatorios");
+        }
+        return presupuestoRepository.findByIdUsuarioAndMesAndAnio(userId, month, year);
     }
 
     public List<CategoriaGasto> getCategorias(Integer userId) {
-        return categoriaGastoRepository.findAll().stream()
-                .filter(c -> userId.equals(c.getIdUsuario()))
-                .collect(Collectors.toList());
+        return categoriaGastoRepository.findByIdUsuario(userId);
     }
 
     public Map<Integer, String> categoriaNombreMap(Integer userId) {
@@ -66,21 +61,19 @@ public class AIDataService {
     }
 
     public List<Ahorro> getAhorros(Integer userId) {
-        return ahorroRepository.findAll().stream()
-                .filter(a -> userId.equals(a.getIdUsuario()))
-                .collect(Collectors.toList());
+        return ahorroRepository.findByIdUsuario(userId);
     }
 
     public List<MovimientoAhorro> getMovimientosAhorro(Integer userId) {
-        return movimientoAhorroRepository.findAll().stream()
-                .filter(m -> userId.equals(m.getIdUsuario()))
-                .collect(Collectors.toList());
+        return movimientoAhorroRepository.findByIdUsuario(userId);
     }
 
-    private boolean inRange(LocalDate value, LocalDate from, LocalDate to) {
-        if (value == null) return false;
-        if (from != null && value.isBefore(from)) return false;
-        if (to != null && value.isAfter(to)) return false;
-        return true;
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("from y to son obligatorios");
+        }
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("Rango de fechas inválido: from no puede ser mayor a to");
+        }
     }
 }
