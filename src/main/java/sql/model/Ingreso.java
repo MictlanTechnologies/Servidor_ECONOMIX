@@ -43,4 +43,7 @@ public class Ingreso {
 
     @Column(name = "idUsuario")
     private Integer idUsuario;
+
+    @Column(name = "idCategoria")
+    private Integer idCategoria;
 }

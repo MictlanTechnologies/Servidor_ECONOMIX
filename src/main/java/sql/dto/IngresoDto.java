@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * DTO alineado a la app Android y a la tabla tbl_ingresos.
@@ -22,4 +23,6 @@ public class IngresoDto {
     private String periodicidadIngreso;
     private LocalDate fechaIngresos;
     private String descripcionIngreso;
+    private Integer idCategoria;
+    private List<String> etiquetas;
 }

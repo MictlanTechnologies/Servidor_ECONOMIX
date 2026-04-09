@@ -217,3 +217,89 @@ SHOW WARNINGS;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+-- -----------------------------------------------------
+-- Extensión categorías + etiquetas (gasto/ingreso)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `economix`.`tbl_categoria` (
+  `idCategoria` INT NOT NULL AUTO_INCREMENT,
+  `idUsuario` INT NOT NULL,
+  `tipo` VARCHAR(20) NOT NULL,
+  `nombre` VARCHAR(80) NOT NULL,
+  `descripcion` TEXT NULL DEFAULT NULL,
+  `color` VARCHAR(7) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  PRIMARY KEY (`idCategoria`),
+  CONSTRAINT `fk_tbl_categoria_usuario`
+    FOREIGN KEY (`idUsuario`)
+    REFERENCES `economix`.`tbl_usuario` (`idUsuario`),
+  CONSTRAINT `uk_tbl_categoria_usuario_tipo_nombre`
+    UNIQUE (`idUsuario`, `tipo`, `nombre`)
+) ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `economix`.`tbl_etiqueta` (
+  `idEtiqueta` INT NOT NULL AUTO_INCREMENT,
+  `idUsuario` INT NOT NULL,
+  `nombre` VARCHAR(60) NOT NULL,
+  `slug` VARCHAR(60) NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  PRIMARY KEY (`idEtiqueta`),
+  CONSTRAINT `fk_tbl_etiqueta_usuario`
+    FOREIGN KEY (`idUsuario`)
+    REFERENCES `economix`.`tbl_usuario` (`idUsuario`),
+  CONSTRAINT `uk_tbl_etiqueta_usuario_slug`
+    UNIQUE (`idUsuario`, `slug`)
+) ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `economix`.`tbl_gasto_etiqueta` (
+  `idGastoEtiqueta` INT NOT NULL AUTO_INCREMENT,
+  `idGasto` INT NOT NULL,
+  `idEtiqueta` INT NOT NULL,
+  PRIMARY KEY (`idGastoEtiqueta`),
+  CONSTRAINT `fk_tbl_gasto_etiqueta_gasto`
+    FOREIGN KEY (`idGasto`)
+    REFERENCES `economix`.`tbl_gastos` (`idGastos`),
+  CONSTRAINT `fk_tbl_gasto_etiqueta_etiqueta`
+    FOREIGN KEY (`idEtiqueta`)
+    REFERENCES `economix`.`tbl_etiqueta` (`idEtiqueta`),
+  CONSTRAINT `uk_tbl_gasto_etiqueta`
+    UNIQUE (`idGasto`, `idEtiqueta`)
+) ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `economix`.`tbl_ingreso_etiqueta` (
+  `idIngresoEtiqueta` INT NOT NULL AUTO_INCREMENT,
+  `idIngreso` INT NOT NULL,
+  `idEtiqueta` INT NOT NULL,
+  PRIMARY KEY (`idIngresoEtiqueta`),
+  CONSTRAINT `fk_tbl_ingreso_etiqueta_ingreso`
+    FOREIGN KEY (`idIngreso`)
+    REFERENCES `economix`.`tbl_ingresos` (`idIngresos`),
+  CONSTRAINT `fk_tbl_ingreso_etiqueta_etiqueta`
+    FOREIGN KEY (`idEtiqueta`)
+    REFERENCES `economix`.`tbl_etiqueta` (`idEtiqueta`),
+  CONSTRAINT `uk_tbl_ingreso_etiqueta`
+    UNIQUE (`idIngreso`, `idEtiqueta`)
+) ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+ALTER TABLE `economix`.`tbl_gastos`
+  ADD COLUMN IF NOT EXISTS `idCategoria` INT NULL DEFAULT NULL,
+  ADD INDEX IF NOT EXISTS `idx_tbl_gastos_idCategoria` (`idCategoria` ASC),
+  ADD CONSTRAINT `fk_tbl_gastos_categoria`
+    FOREIGN KEY (`idCategoria`)
+    REFERENCES `economix`.`tbl_categoria` (`idCategoria`);
+
+ALTER TABLE `economix`.`tbl_ingresos`
+  ADD COLUMN IF NOT EXISTS `idCategoria` INT NULL DEFAULT NULL,
+  ADD INDEX IF NOT EXISTS `idx_tbl_ingresos_idCategoria` (`idCategoria` ASC),
+  ADD CONSTRAINT `fk_tbl_ingresos_categoria`
+    FOREIGN KEY (`idCategoria`)
+    REFERENCES `economix`.`tbl_categoria` (`idCategoria`);

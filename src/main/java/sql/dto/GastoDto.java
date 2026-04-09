@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * DTO alineado a la app Android.
@@ -32,4 +33,6 @@ public class GastoDto {
     private BigDecimal montoGasto;
     private LocalDate fechaGastos;
     private String periodoGastos;
+    private Integer idCategoria;
+    private List<String> etiquetas;
 }

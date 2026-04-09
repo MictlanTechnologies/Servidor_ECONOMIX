@@ -50,4 +50,7 @@ public class Gasto {
 
     @Column(name = "idUsuario", nullable = false)
     private Integer idUsuario;
+
+    @Column(name = "idCategoria")
+    private Integer idCategoria;
 }
