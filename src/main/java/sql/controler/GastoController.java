@@ -61,13 +61,18 @@ public class GastoController {
             }
 
             Categoria categoriaResuelta = resolverCategoria(movimiento.getIdUsuario(), request.getCategoria(), TipoCategoria.GASTO, movimiento.getIdCategoria());
-            movimiento.setIdCategoria(categoriaResuelta.getIdCategoria());
+            if (categoriaResuelta != null) {
+                movimiento.setIdCategoria(categoriaResuelta.getIdCategoria());
+            }
 
             Gasto gastoGuardado = gastoService.save(toEntity(movimiento));
 
             List<EtiquetaDto> etiquetas = new ArrayList<>();
             if (request.getEtiquetas() != null) {
                 for (String rawEtiqueta : request.getEtiquetas()) {
+                    if (rawEtiqueta == null || rawEtiqueta.trim().isBlank()) {
+                        continue;
+                    }
                     Etiqueta etiqueta = etiquetaService.findOrCreate(movimiento.getIdUsuario(), rawEtiqueta);
                     gastoEtiquetaRepository.save(GastoEtiqueta.builder()
                             .idGasto(gastoGuardado.getIdGastos())
@@ -84,7 +89,7 @@ public class GastoController {
 
             return ResponseEntity.ok(MovimientoConEtiquetasResponse.<GastoDto>builder()
                     .movimiento(toDto(gastoGuardado))
-                    .categoria(toCategoriaDto(categoriaResuelta))
+                    .categoria(categoriaResuelta == null ? null : toCategoriaDto(categoriaResuelta))
                     .etiquetas(etiquetas)
                     .build());
         } catch (IllegalArgumentException ex) {
@@ -120,7 +125,7 @@ public class GastoController {
         }
 
         if (categoriaDto == null || categoriaDto.getNombre() == null || categoriaDto.getNombre().isBlank()) {
-            throw new IllegalArgumentException("Debe enviar una categoría válida");
+            return null;
         }
 
         return categoriaService.findOrCreate(
