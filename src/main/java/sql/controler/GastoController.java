@@ -6,6 +6,7 @@ import sql.service.GastoService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,13 +37,13 @@ public class GastoController {
     }
 
     @PostMapping
-    public ResponseEntity<GastoDto> save(@RequestBody GastoDto dto) {
+    public ResponseEntity<GastoDto> save(@Valid @RequestBody GastoDto dto) {
         Gasto gasto = gastoService.save(toEntity(dto));
         return ResponseEntity.ok(toDto(gasto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GastoDto> update(@PathVariable Integer id, @RequestBody GastoDto dto) {
+    public ResponseEntity<GastoDto> update(@PathVariable Integer id, @Valid @RequestBody GastoDto dto) {
         Gasto updated = gastoService.update(id, toEntity(dto));
         if (updated == null) {
             return ResponseEntity.notFound().build();
