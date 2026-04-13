@@ -29,13 +29,15 @@ public class GastoServiceImpl implements GastoService {
 
     @Override
     public Gasto save(Gasto gasto) {
-        presupuestoService.validarGastoEnCategoria(
-                gasto.getIdUsuario(),
-                gasto.getIdCategoriaPresupuesto(),
-                gasto.getMontoGasto(),
-                gasto.getFechaGastos(),
-                null
-        );
+        if (gasto.getIdCategoriaPresupuesto() != null) {
+            presupuestoService.validarGastoEnCategoria(
+                    gasto.getIdUsuario(),
+                    gasto.getIdCategoriaPresupuesto(),
+                    gasto.getMontoGasto(),
+                    gasto.getFechaGastos(),
+                    null
+            );
+        }
         return gastoRepository.save(gasto);
     }
 
@@ -49,13 +51,15 @@ public class GastoServiceImpl implements GastoService {
         return gastoRepository.findById(id)
                 .map(existing -> {
                     BeanUtils.copyProperties(gasto, existing, "idGastos");
-                    presupuestoService.validarGastoEnCategoria(
-                            existing.getIdUsuario(),
-                            existing.getIdCategoriaPresupuesto(),
-                            existing.getMontoGasto(),
-                            existing.getFechaGastos(),
-                            existing.getIdGastos()
-                    );
+                    if (existing.getIdCategoriaPresupuesto() != null) {
+                        presupuestoService.validarGastoEnCategoria(
+                                existing.getIdUsuario(),
+                                existing.getIdCategoriaPresupuesto(),
+                                existing.getMontoGasto(),
+                                existing.getFechaGastos(),
+                                existing.getIdGastos()
+                        );
+                    }
                     return gastoRepository.save(existing);
                 })
                 .orElse(null);

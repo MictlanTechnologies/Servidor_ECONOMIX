@@ -46,7 +46,6 @@ public class GastoDto {
     @NotBlank(message = "periodoGastos es obligatorio")
     private String periodoGastos;
 
-    @NotNull(message = "idCategoriaPresupuesto es obligatorio")
     @JsonAlias({"categoriaId"})
     private Integer idCategoriaPresupuesto;
 }
