@@ -53,4 +53,7 @@ public class Gasto {
 
     @Column(name = "categoria_id")
     private Integer idCategoriaPresupuesto;
+
+    @Column(name = "idIngresos", nullable = false)
+    private Integer idIngresos;
 }

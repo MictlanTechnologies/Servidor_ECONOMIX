@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * DTO alineado a la app Android.
@@ -46,6 +47,13 @@ public class GastoDto {
     @NotBlank(message = "periodoGastos es obligatorio")
     private String periodoGastos;
 
+    @NotNull(message = "idCategoriaPresupuesto es obligatorio")
     @JsonAlias({"categoriaId"})
     private Integer idCategoriaPresupuesto;
+
+    @NotNull(message = "idIngreso es obligatorio")
+    private Integer idIngreso;
+
+    // Etiquetas asociadas (opcional en respuesta)
+    private List<String> etiquetas;
 }

@@ -12,41 +12,30 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Entidad para presupuestos: monto máximo por categoría, mes y año.
- * Única por (idUsuario, idCategoria, mes, anio).
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "tbl_presupuesto", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"idUsuario", "idCategoria", "mes", "anio"})
+@Table(name = "tbl_etiquetas", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"idUsuario", "slug"})
 })
-public class Presupuesto {
+public class Etiqueta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idPresupuesto")
-    private Integer idPresupuesto;
+    @Column(name = "idEtiqueta")
+    private Integer idEtiqueta;
 
     @Column(name = "idUsuario", nullable = false)
     private Integer idUsuario;
 
-    @Column(name = "idCategoria", nullable = false)
-    private Integer idCategoria;
+    @Column(name = "nombre", nullable = false, length = 100)
+    private String nombre;
 
-    @Column(name = "montoMaximo", nullable = false)
-    private BigDecimal montoMaximo;
-
-    @Column(name = "mes", nullable = false)
-    private Integer mes;
-
-    @Column(name = "anio", nullable = false)
-    private Integer anio;
+    @Column(name = "slug", nullable = false, length = 100)
+    private String slug;
 
     @Column(name = "createdAt", nullable = false)
     private LocalDateTime createdAt;

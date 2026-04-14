@@ -5,20 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PresupuestoDto {
-    private Integer idPresupuesto;
+public class EtiquetaDto {
+    private Integer idEtiqueta;
     private Integer idUsuario;
-    private Integer idCategoria;
-    private BigDecimal montoMaximo;
-    private Integer mes;
-    private Integer anio;
+    private String nombre;
+    private String slug;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
