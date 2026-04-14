@@ -10,4 +10,5 @@ public interface GastoService {
     Gasto save(Gasto gasto);
     void delete(Integer id);
     Gasto update(Integer id, Gasto gasto);
+    Gasto saveWithTags(Gasto gasto, List<String> etiquetas);
 }

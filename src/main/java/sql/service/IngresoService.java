@@ -10,4 +10,5 @@ public interface IngresoService {
     Ingreso save(Ingreso ingreso);
     void delete(Integer id);
     Ingreso update(Integer id, Ingreso ingreso);
+    Ingreso saveWithTags(Ingreso ingreso, List<String> etiquetas);
 }

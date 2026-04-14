@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import sql.model.Gasto;
+import sql.model.GastoEtiqueta;
+import sql.repository.GastoEtiquetaRepository;
 import sql.repository.GastoRepository;
+import sql.service.EtiquetaService;
 import sql.service.GastoService;
 import sql.service.PresupuestoService;
 
@@ -16,6 +19,8 @@ public class GastoServiceImpl implements GastoService {
 
     private final GastoRepository gastoRepository;
     private final PresupuestoService presupuestoService;
+    private final EtiquetaService etiquetaService;
+    private final GastoEtiquetaRepository gastoEtiquetaRepository;
 
     @Override
     public List<Gasto> getAll() {
@@ -59,5 +64,31 @@ public class GastoServiceImpl implements GastoService {
                     return gastoRepository.save(existing);
                 })
                 .orElse(null);
+    }
+
+    @Override
+    public Gasto saveWithTags(Gasto gasto, List<String> etiquetas) {
+        // Guardar el gasto primero
+        Gasto gastoGuardado = save(gasto);
+
+        // Asociar etiquetas si se proporcionan
+        if (etiquetas != null && !etiquetas.isEmpty()) {
+            // Limpiar etiquetas anteriores si existen
+            gastoEtiquetaRepository.deleteByIdGastos(gastoGuardado.getIdGastos());
+
+            // Crear o reutilizar etiquetas y asociarlas
+            for (String nombreEtiqueta : etiquetas) {
+                var etiqueta = etiquetaService.obtenerOCrearEtiqueta(gasto.getIdUsuario(), nombreEtiqueta);
+
+                GastoEtiqueta gastoEtiqueta = GastoEtiqueta.builder()
+                        .idGastos(gastoGuardado.getIdGastos())
+                        .idEtiqueta(etiqueta.getIdEtiqueta())
+                        .build();
+
+                gastoEtiquetaRepository.save(gastoEtiqueta);
+            }
+        }
+
+        return gastoGuardado;
     }
 }
