@@ -39,8 +39,14 @@ public class Presupuesto {
     @Column(name = "idCategoria", nullable = false)
     private Integer idCategoria;
 
+    @Column(name = "categoria", length = 100)
+    private String categoria;
+
     @Column(name = "montoMaximo", nullable = false)
     private BigDecimal montoMaximo;
+
+    @Column(name = "montoGastado")
+    private BigDecimal montoGastado;
 
     @Column(name = "mes", nullable = false)
     private Integer mes;

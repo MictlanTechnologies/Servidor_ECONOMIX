@@ -16,7 +16,9 @@ public class PresupuestoDto {
     private Integer idPresupuesto;
     private Integer idUsuario;
     private Integer idCategoria;
+    private String categoria;
     private BigDecimal montoMaximo;
+    private BigDecimal montoGastado;
     private Integer mes;
     private Integer anio;
     private LocalDateTime createdAt;
