@@ -62,7 +62,7 @@ public class UsuarioController {
      * La app hace POST a /economix/api/usuarios/login con {perfilUsuario, contrasenaUsuario}
      */
     @PostMapping("/login")
-    public ResponseEntity<UsuarioDto> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<UsuarioDto> login(@RequestBody(required = false) LoginRequest request) {
         if (request == null
                 || request.getPerfilUsuario() == null
                 || request.getPerfilUsuario().isBlank()
@@ -76,6 +76,7 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        // Flujo legado compatible con Android actual:
         // Comparación directa (sin hash) porque así está actualmente el proyecto.
         if (!request.getContrasenaUsuario().equals(usuario.getContrasenaUsuario())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -103,7 +104,8 @@ public class UsuarioController {
         return UsuarioDto.builder()
                 .idUsuario(usuario.getIdUsuario())
                 .perfilUsuario(usuario.getPerfilUsuario())
-                .contrasenaUsuario(usuario.getContrasenaUsuario())
+                // Nunca exponer la contraseña real al cliente.
+                .contrasenaUsuario(null)
                 .build();
     }
 
