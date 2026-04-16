@@ -1,6 +1,7 @@
 package sql.controler;
 
 import sql.dto.GastoDto;
+import sql.dto.GastoWithTagsRequest;
 import sql.model.Gasto;
 import sql.service.GastoService;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/economix/api/gastos")
+@RequestMapping({"/economix/api/gastos", "/api/gastos"})
 @AllArgsConstructor
 public class GastoController {
 
@@ -39,6 +40,12 @@ public class GastoController {
     @PostMapping
     public ResponseEntity<GastoDto> save(@Valid @RequestBody GastoDto dto) {
         Gasto gasto = gastoService.save(toEntity(dto));
+        return ResponseEntity.ok(toDto(gasto));
+    }
+
+    @PostMapping("/with-tags")
+    public ResponseEntity<GastoDto> saveWithTags(@Valid @RequestBody GastoWithTagsRequest request) {
+        Gasto gasto = gastoService.saveWithTags(toEntity(request.getMovimiento()), request.getEtiquetas());
         return ResponseEntity.ok(toDto(gasto));
     }
 

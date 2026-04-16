@@ -50,6 +50,7 @@ public class GastoDto {
     @JsonAlias({"categoriaId"})
     private Integer idCategoriaPresupuesto;
 
+    @JsonAlias({"idIngresos", "ingresoId"})
     private Integer idIngreso;
 
     // Etiquetas asociadas (opcional en respuesta)

@@ -103,6 +103,14 @@ CREATE INDEX `idUsuario` ON `economix`.`tbl_ingresos` (`idUsuario` ASC) VISIBLE;
 
 SHOW WARNINGS;
 
+ALTER TABLE `economix`.`tbl_gastos`
+  ADD COLUMN IF NOT EXISTS `idIngresos` INT NOT NULL,
+  ADD INDEX IF NOT EXISTS `idx_tbl_gastos_ingreso` (`idIngresos` ASC),
+  ADD CONSTRAINT `fk_tbl_gastos_ingreso`
+    FOREIGN KEY (`idIngresos`) REFERENCES `economix`.`tbl_ingresos` (`idIngresos`);
+
+SHOW WARNINGS;
+
 -- -----------------------------------------------------
 -- Table `economix`.`tbl_conceptoingresos`
 -- -----------------------------------------------------
@@ -217,6 +225,28 @@ SHOW WARNINGS;
 
 
 -- -----------------------------------------------------
+-- Table `economix`.`tbl_presupuesto`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `economix`.`tbl_presupuesto` (
+  `idPresupuesto` INT NOT NULL AUTO_INCREMENT,
+  `idUsuario` INT NOT NULL,
+  `idCategoria` INT NOT NULL,
+  `categoria` VARCHAR(100) NULL,
+  `montoMaximo` DECIMAL(19,2) NOT NULL,
+  `montoGastado` DECIMAL(19,2) NULL DEFAULT 0,
+  `mes` INT NOT NULL,
+  `anio` INT NOT NULL,
+  `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` DATETIME NULL,
+  PRIMARY KEY (`idPresupuesto`),
+  UNIQUE KEY `uq_tbl_presupuesto_usuario_categoria_mes_anio` (`idUsuario`, `idCategoria`, `mes`, `anio`),
+  CONSTRAINT `fk_tbl_presupuesto_usuario`
+    FOREIGN KEY (`idUsuario`) REFERENCES `economix`.`tbl_usuario` (`idUsuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
 -- Table `economix`.`categoria_presupuesto`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `economix`.`categoria_presupuesto` (
@@ -232,6 +262,10 @@ CREATE TABLE IF NOT EXISTS `economix`.`categoria_presupuesto` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE INDEX `idx_categoria_presupuesto_usuario` ON `economix`.`categoria_presupuesto` (`usuario_id` ASC) VISIBLE;
+
+ALTER TABLE `economix`.`tbl_presupuesto`
+  ADD CONSTRAINT `fk_tbl_presupuesto_categoria`
+    FOREIGN KEY (`idCategoria`) REFERENCES `economix`.`categoria_presupuesto` (`id`);
 
 -- -----------------------------------------------------
 -- Table `economix`.`asignacion_presupuesto`

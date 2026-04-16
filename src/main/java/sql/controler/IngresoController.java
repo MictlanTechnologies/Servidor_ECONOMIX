@@ -1,9 +1,11 @@
 package sql.controler;
 
 import sql.dto.IngresoDto;
+import sql.dto.IngresoWithTagsRequest;
 import sql.model.Ingreso;
 import sql.service.IngresoService;
 import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/economix/api/ingresos")
+@RequestMapping({"/economix/api/ingresos", "/api/ingresos"})
 @AllArgsConstructor
 public class IngresoController {
 
@@ -38,6 +40,12 @@ public class IngresoController {
     @PostMapping
     public ResponseEntity<IngresoDto> save(@RequestBody IngresoDto dto) {
         Ingreso ingreso = ingresoService.save(toEntity(dto));
+        return ResponseEntity.ok(toDto(ingreso));
+    }
+
+    @PostMapping("/with-tags")
+    public ResponseEntity<IngresoDto> saveWithTags(@Valid @RequestBody IngresoWithTagsRequest request) {
+        Ingreso ingreso = ingresoService.saveWithTags(toEntity(request.getMovimiento()), request.getEtiquetas());
         return ResponseEntity.ok(toDto(ingreso));
     }
 
