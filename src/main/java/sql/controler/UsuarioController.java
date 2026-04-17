@@ -1,6 +1,8 @@
 package sql.controler;
 
 import sql.dto.LoginRequest;
+import sql.dto.TwoFactorQrRequest;
+import sql.dto.TwoFactorQrResponse;
 import sql.dto.UsuarioDto;
 import sql.model.Usuario;
 import sql.service.UsuarioService;
@@ -9,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +21,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/economix/api/usuarios")
 @AllArgsConstructor
 public class UsuarioController {
+
+    private static final String TOTP_ISSUER = "ECONOMIX";
+    private static final char[] BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".toCharArray();
 
     private final UsuarioService usuarioService;
 
@@ -85,6 +93,42 @@ public class UsuarioController {
         return ResponseEntity.ok(toDto(usuario));
     }
 
+    /**
+     * Flujo 2FA legado: genera el contenido para renderizar el QR en Android/Web.
+     * No persiste el secreto automáticamente; el cliente debe almacenarlo según su flujo.
+     */
+    @PostMapping("/2fa/qr")
+    public ResponseEntity<TwoFactorQrResponse> generate2faQr(@RequestBody(required = false) TwoFactorQrRequest request) {
+        if (request == null || request.getPerfilUsuario() == null || request.getPerfilUsuario().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String perfilUsuario = request.getPerfilUsuario().trim();
+        String secret = (request.getSecreto2fa() == null || request.getSecreto2fa().isBlank())
+                ? generateBase32Secret(32)
+                : request.getSecreto2fa().trim().toUpperCase();
+
+        String label = TOTP_ISSUER + ":" + perfilUsuario;
+        String otpauthUrl = "otpauth://totp/"
+                + URLEncoder.encode(label, StandardCharsets.UTF_8)
+                + "?secret="
+                + URLEncoder.encode(secret, StandardCharsets.UTF_8)
+                + "&issuer="
+                + URLEncoder.encode(TOTP_ISSUER, StandardCharsets.UTF_8);
+
+        String qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="
+                + URLEncoder.encode(otpauthUrl, StandardCharsets.UTF_8);
+
+        return ResponseEntity.ok(
+                TwoFactorQrResponse.builder()
+                        .perfilUsuario(perfilUsuario)
+                        .secreto2fa(secret)
+                        .otpauthUrl(otpauthUrl)
+                        .qrCodeUrl(qrCodeUrl)
+                        .build()
+        );
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDto> update(@PathVariable Integer id, @RequestBody UsuarioDto usuarioDto) {
         Usuario updated = usuarioService.update(id, toEntity(usuarioDto));
@@ -115,5 +159,14 @@ public class UsuarioController {
                 .perfilUsuario(dto.getPerfilUsuario())
                 .contrasenaUsuario(dto.getContrasenaUsuario())
                 .build();
+    }
+
+    private String generateBase32Secret(int length) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder secret = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            secret.append(BASE32_ALPHABET[random.nextInt(BASE32_ALPHABET.length)]);
+        }
+        return secret.toString();
     }
 }
