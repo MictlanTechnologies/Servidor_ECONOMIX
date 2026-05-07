@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Random;
 
 @RestController
-@RequestMapping("/ECONOMIX/api")
+@RequestMapping("/economix/api")
 public class Test {
     @RequestMapping("/test")
     public ResponseEntity<String> test(){
