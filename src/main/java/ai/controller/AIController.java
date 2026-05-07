@@ -79,7 +79,7 @@ public class AIController {
                 .toList();
 
         List<AISummaryResponse.TopEntry> topCategorias = gastos.stream()
-                .collect(Collectors.groupingBy(g -> categorias.getOrDefault(g.getIdCategoria(), "Sin categoría"), Collectors.mapping(Gasto::getMontoGasto, Collectors.reducing(BigDecimal.ZERO, this::add))))
+                .collect(Collectors.groupingBy(g -> categorias.getOrDefault(g.getIdGastos(), "Sin categoría"), Collectors.mapping(Gasto::getMontoGasto, Collectors.reducing(BigDecimal.ZERO, this::add))))
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
                 .limit(5)
@@ -154,7 +154,7 @@ public class AIController {
         List<BudgetRiskResponse.BudgetRiskItem> items = new ArrayList<>();
         for (Presupuesto p : presupuestos) {
             BigDecimal consumido = sum(gastosMes.stream()
-                    .filter(g -> Objects.equals(g.getIdCategoria(), p.getIdCategoria()))
+                    .filter(g -> Objects.equals(g.getIdGastos(), p.getIdCategoria()))
                     .map(g -> nz(g.getMontoGasto())).toList());
             BigDecimal pct = p.getMontoMaximo() == null || p.getMontoMaximo().compareTo(BigDecimal.ZERO) <= 0
                     ? BigDecimal.ZERO : consumido.multiply(BigDecimal.valueOf(100)).divide(p.getMontoMaximo(), 2, RoundingMode.HALF_UP);
@@ -200,7 +200,7 @@ public class AIController {
                         .idGasto(g.getIdGastos())
                         .fecha(g.getFechaGastos())
                         .articulo(g.getArticuloGasto())
-                        .idCategoria(g.getIdCategoria())
+                        .idCategoria(g.getIdGastos())
                         .monto(scale2(monto))
                         .robustZScore(scale2(z))
                         .build());
@@ -308,7 +308,6 @@ public class AIController {
                 : ahorrado.multiply(BigDecimal.valueOf(100)).divide(meta, 2, RoundingMode.HALF_UP);
         return AISummaryResponse.SavingGoalProgress.builder()
                 .idAhorro(a.getIdAhorro())
-                .nombreObjetivo(a.getNombreObjetivo())
                 .meta(scale2(meta))
                 .montoAhorrado(scale2(ahorrado))
                 .porcentajeProgreso(scale2(pct))

@@ -34,7 +34,7 @@ public class AIDataService {
     public List<Gasto> getGastos(Integer userId, LocalDate from, LocalDate to, Integer categoryId) {
         return gastoRepository.findAll().stream()
                 .filter(g -> userId.equals(g.getIdUsuario()))
-                .filter(g -> categoryId == null || categoryId.equals(g.getIdCategoria()))
+                .filter(g -> categoryId == null || categoryId.equals(g.getIdGastos()))
                 .filter(g -> inRange(g.getFechaGastos(), from, to))
                 .collect(Collectors.toList());
     }
@@ -67,7 +67,7 @@ public class AIDataService {
 
     public List<Ahorro> getAhorros(Integer userId) {
         return ahorroRepository.findAll().stream()
-                .filter(a -> userId.equals(a.getIdUsuario()))
+                .filter(a -> userId.equals(a.getIdAhorro()))
                 .collect(Collectors.toList());
     }
 
