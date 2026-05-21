@@ -31,8 +31,9 @@ public class Usuario {
     @Column(name = "contraseñaUsuario", nullable = false, length = 100)
     private String contrasenaUsuario;
 
-    @Column(name = "twoFactorEnabled")
-    private Boolean twoFactorEnabled;
+    @Builder.Default
+    @Column(name = "twoFactorEnabled", nullable = false)
+    private Boolean twoFactorEnabled = false;
 
     @Column(name = "twoFactorSecretEncrypted", length = 1000)
     private String twoFactorSecretEncrypted;

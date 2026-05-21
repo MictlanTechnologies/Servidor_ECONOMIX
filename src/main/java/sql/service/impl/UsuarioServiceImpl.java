@@ -39,9 +39,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Usuario save(Usuario usuario) {
+        if (usuario.getTwoFactorEnabled() == null) {
+            usuario.setTwoFactorEnabled(false);
+        }
+
         if (usuario.getContrasenaUsuario() != null && !usuario.getContrasenaUsuario().startsWith("$2")) {
             usuario.setContrasenaUsuario(passwordEncoder.encode(usuario.getContrasenaUsuario()));
         }
+
         return usuarioRepository.save(usuario);
     }
 
@@ -54,7 +59,18 @@ public class UsuarioServiceImpl implements UsuarioService {
     public Usuario update(Integer id, Usuario usuario) {
         return usuarioRepository.findById(id)
                 .map(existing -> {
-                    BeanUtils.copyProperties(usuario, existing, "idUsuario");
+                    BeanUtils.copyProperties(
+                            usuario,
+                            existing,
+                            "idUsuario",
+                            "twoFactorEnabled",
+                            "twoFactorSecretEncrypted",
+                            "twoFactorVerifiedAt",
+                            "lastOtpTimestepUsed"
+                    );
+                    if (existing.getTwoFactorEnabled() == null) {
+                        existing.setTwoFactorEnabled(false);
+                    }
                     if (existing.getContrasenaUsuario() != null && !existing.getContrasenaUsuario().startsWith("$2")) {
                         existing.setContrasenaUsuario(passwordEncoder.encode(existing.getContrasenaUsuario()));
                     }

@@ -116,6 +116,10 @@ public class UsuarioController {
                 .idUsuario(dto.getIdUsuario())
                 .perfilUsuario(dto.getPerfilUsuario())
                 .contrasenaUsuario(dto.getContrasenaUsuario())
+                .twoFactorEnabled(false)
+                .twoFactorSecretEncrypted(null)
+                .twoFactorVerifiedAt(null)
+                .lastOtpTimestepUsed(null)
                 .build();
     }
 }
