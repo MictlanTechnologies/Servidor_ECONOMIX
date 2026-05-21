@@ -18,6 +18,9 @@ public class PresupuestoDto {
     private String categoria;
     private BigDecimal montoMaximo;
     private BigDecimal montoGastado;
+    private BigDecimal montoRestante;
+    private BigDecimal porcentajeUso;
+    private String estado;
     private Integer mes;
     private Integer anio;
 }
