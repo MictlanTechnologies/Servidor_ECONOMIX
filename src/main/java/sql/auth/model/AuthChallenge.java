@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_auth_challenge")
+@Table(name = "auth_challenge")
 public class AuthChallenge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

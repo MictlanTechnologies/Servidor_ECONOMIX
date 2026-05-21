@@ -25,7 +25,7 @@ public class AuthController {
 
     @PostMapping("/2fa/verify")
     public ResponseEntity<AuthDtos.LoginResponse> verify2fa(@RequestBody AuthDtos.Verify2FARequest request) {
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(authService.verify2fa(request));
     }
 
     @PostMapping("/logout")
