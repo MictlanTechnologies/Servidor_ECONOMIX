@@ -77,7 +77,7 @@ public class AuthService {
     }
 
     public AuthDtos.LoginResponse verify2fa(AuthDtos.Verify2FARequest request) {
-        if (request == null || request.getChallengeId() == null || request.getChallengeId().isBlank() || request.getCode() == null || request.getCode().isBlank()) {
+        if (request == null || request.getChallengeId() == null || request.getChallengeId().isBlank() || request.resolvedCode() == null || request.resolvedCode().isBlank()) {
             throw new BadRequestAuthException("challengeId y code son obligatorios.");
         }
 
@@ -91,7 +91,7 @@ public class AuthService {
         Usuario user = usuarioRepository.findById(challenge.getIdUsuario())
                 .orElseThrow(() -> new UnauthorizedAuthException("Usuario no encontrado."));
 
-        twoFactorService.verifyForLogin(user, request.getCode());
+        twoFactorService.verifyForLogin(user, request.resolvedCode());
         challenge.setUsed(true);
         authChallengeRepository.save(challenge);
 

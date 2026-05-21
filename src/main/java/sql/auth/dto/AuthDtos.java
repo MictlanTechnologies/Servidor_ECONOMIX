@@ -64,6 +64,14 @@ public class AuthDtos {
     public static class Verify2FARequest {
         private String challengeId;
         private String code;
+        private String otpCode;
+
+        public String resolvedCode() {
+            if (code != null && !code.isBlank()) {
+                return code;
+            }
+            return otpCode;
+        }
     }
 
     @Data
