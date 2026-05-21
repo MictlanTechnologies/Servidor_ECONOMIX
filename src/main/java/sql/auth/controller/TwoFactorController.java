@@ -66,7 +66,7 @@ public class TwoFactorController {
                 return number.intValue();
             }
             return Integer.parseInt(String.valueOf(userIdClaim));
-        } catch (JwtException | RuntimeException e) {
+        } catch (JwtException e) {
             throw new UnauthorizedAuthException("Token inválido o expirado.");
         }
     }
