@@ -22,7 +22,7 @@ public class OpenAiChatService {
     public Map<String, Object> ask(String input) {
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(props.getApiKey());
+            headers.setBearerAuth(props.getOpenAiApiKey());
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, Object> body = new HashMap<>();
             body.put("model", props.getModel());
