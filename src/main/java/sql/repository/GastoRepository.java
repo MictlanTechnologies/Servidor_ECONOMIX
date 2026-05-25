@@ -7,9 +7,11 @@ import org.springframework.stereotype.Repository;
 import sql.model.Gasto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Repository
 public interface GastoRepository extends JpaRepository<Gasto, Integer> {
+    List<Gasto> findByIdUsuario(Integer idUsuario);
 
     @Query(value = """
             SELECT COALESCE(SUM(montoGasto), 0)
