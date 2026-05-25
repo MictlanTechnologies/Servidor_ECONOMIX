@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "openai")
 public class OpenAiProperties {
     private String apiKey;
-    private String model = "gpt-5.5";
+    private String model = "gpt-4.1-mini";
     private Integer maxOutputTokens = 700;
     private Integer timeoutSeconds = 20;
 }
