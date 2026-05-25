@@ -47,6 +47,7 @@ public class ChatbotService {
         }
 
         if (ai.isEmpty()) {
+            log.warn("Respuesta IA vacía; usando fallback financiero local.");
             List<String> alertas = new ArrayList<>(summary.getPresupuestosExcedidos());
             if (isDevProfile()) {
                 alertas.add("DEBUG: OpenAI no disponible. Se devolvió fallback backend.");

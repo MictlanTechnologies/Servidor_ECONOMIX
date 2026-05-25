@@ -46,11 +46,15 @@ public class OpenAiChatService {
 
             Map<String, Object> body = new HashMap<>();
             body.put("model", model);
-            body.put("instructions", EconomixAiPrompt.SYSTEM_PROMPT + "\nDevuelve JSON puro, sin markdown ni texto adicional.");
+            body.put("instructions", EconomixAiPrompt.SYSTEM_PROMPT + "\nDevuelve únicamente JSON válido. No uses markdown. No uses bloque ```json. No agregues texto fuera del JSON.");
             body.put("input", input);
             body.put("max_output_tokens", props.getMaxOutputTokens());
-            body.put("text", Map.of("format", Map.of("type", "json_object")));
 
+            log.info("OpenAI config: model={}, apiKeyPresent={}, maxOutputTokens={}, timeoutSeconds={}",
+                    model,
+                    apiKey != null && !apiKey.isBlank(),
+                    props.getMaxOutputTokens(),
+                    props.getTimeoutSeconds());
             log.info("Invocando OpenAI Responses API con modelo={}", model);
             ResponseEntity<String> resp = rt.postForEntity(OPENAI_RESPONSES_URL, new HttpEntity<>(body, headers), String.class);
 
@@ -61,7 +65,18 @@ public class OpenAiChatService {
 
             return parseOpenAiResponse(resp.getBody());
         } catch (HttpStatusCodeException ex) {
-            log.error("Error HTTP OpenAI: status={} body={} message={}", ex.getStatusCode().value(), summarize(ex.getResponseBodyAsString(StandardCharsets.UTF_8)), ex.getMessage());
+            int status = ex.getStatusCode().value();
+            String errorBody = summarize(ex.getResponseBodyAsString(StandardCharsets.UTF_8));
+            log.error("Error HTTP OpenAI: status={} model={} body={} message={}", status, model, errorBody, ex.getMessage());
+            if (status == 400) {
+                log.error("OpenAI devolvió 400 (bad request). Revisa payload/body. body={}", errorBody);
+            } else if (status == 401) {
+                log.error("API key inválida o no autorizada");
+            } else if (status == 429) {
+                log.error("Límite de uso, cuota o rate limit alcanzado");
+            } else if (status == 404 || errorBody.toLowerCase().contains("model_not_found")) {
+                log.error("Modelo no disponible para esta cuenta: {}", model);
+            }
             return Map.of();
         } catch (ResourceAccessException ex) {
             log.error("Timeout o error de conectividad con OpenAI: {}", ex.getMessage());
