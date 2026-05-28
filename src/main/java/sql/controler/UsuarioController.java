@@ -7,6 +7,7 @@ import sql.service.UsuarioService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @GetMapping
     public ResponseEntity<List<UsuarioDto>> getAll() {
@@ -76,8 +78,10 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // Comparación directa (sin hash) porque así está actualmente el proyecto.
-        if (!request.getContrasenaUsuario().equals(usuario.getContrasenaUsuario())) {
+        String stored = usuario.getContrasenaUsuario();
+        boolean ok = request.getContrasenaUsuario().equals(stored)
+                || (stored != null && stored.startsWith("$2") && passwordEncoder.matches(request.getContrasenaUsuario(), stored));
+        if (!ok) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -112,6 +116,10 @@ public class UsuarioController {
                 .idUsuario(dto.getIdUsuario())
                 .perfilUsuario(dto.getPerfilUsuario())
                 .contrasenaUsuario(dto.getContrasenaUsuario())
+                .twoFactorEnabled(false)
+                .twoFactorSecretEncrypted(null)
+                .twoFactorVerifiedAt(null)
+                .lastOtpTimestepUsed(null)
                 .build();
     }
 }

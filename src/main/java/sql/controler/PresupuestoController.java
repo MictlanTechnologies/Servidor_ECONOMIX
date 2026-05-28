@@ -1,14 +1,20 @@
 package sql.controler;
 
-import sql.dto.PresupuestoDto;
-import sql.model.Presupuesto;
-import sql.service.PresupuestoService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import sql.dto.PresupuestoDto;
+import sql.service.PresupuestoService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/economix/api/presupuestos")
@@ -19,66 +25,59 @@ public class PresupuestoController {
 
     @GetMapping
     public ResponseEntity<List<PresupuestoDto>> getAll() {
-        List<Presupuesto> presupuestos = presupuestoService.getAll();
-        if (presupuestos == null || presupuestos.isEmpty()) {
+        List<PresupuestoDto> lista = presupuestoService.getAll();
+        if (lista.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(presupuestos.stream().map(this::toDto).collect(Collectors.toList()));
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PresupuestoDto> getById(@PathVariable Integer id) {
-        Presupuesto presupuesto = presupuestoService.getById(id);
+        return ResponseEntity.ok(presupuestoService.getById(id));
+    }
+
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<List<PresupuestoDto>> getByUsuario(@PathVariable Integer idUsuario) {
+        return ResponseEntity.ok(presupuestoService.getByUsuario(idUsuario));
+    }
+
+    @GetMapping("/usuario/{idUsuario}/periodo")
+    public ResponseEntity<List<PresupuestoDto>> getByUsuarioAndPeriodo(
+            @PathVariable Integer idUsuario,
+            @RequestParam Integer mes,
+            @RequestParam Integer anio
+    ) {
+        return ResponseEntity.ok(presupuestoService.getByUsuarioAndPeriodo(idUsuario, mes, anio));
+    }
+
+    @GetMapping("/usuario/{idUsuario}/categoria")
+    public ResponseEntity<PresupuestoDto> getByUsuarioCategoriaPeriodo(
+            @PathVariable Integer idUsuario,
+            @RequestParam String categoria,
+            @RequestParam Integer mes,
+            @RequestParam Integer anio
+    ) {
+        PresupuestoDto presupuesto = presupuestoService.getByUsuarioCategoriaPeriodo(idUsuario, categoria, mes, anio);
         if (presupuesto == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(toDto(presupuesto));
+        return ResponseEntity.ok(presupuesto);
     }
 
     @PostMapping
     public ResponseEntity<PresupuestoDto> save(@RequestBody PresupuestoDto dto) {
-        Presupuesto presupuesto = presupuestoService.save(toEntity(dto));
-        return ResponseEntity.ok(toDto(presupuesto));
+        return ResponseEntity.ok(presupuestoService.save(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PresupuestoDto> update(@PathVariable Integer id, @RequestBody PresupuestoDto dto) {
-        Presupuesto updated = presupuestoService.update(id, toEntity(dto));
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(toDto(updated));
+        return ResponseEntity.ok(presupuestoService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         presupuestoService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private PresupuestoDto toDto(Presupuesto presupuesto) {
-        return PresupuestoDto.builder()
-                .idPresupuesto(presupuesto.getIdPresupuesto())
-                .idUsuario(presupuesto.getIdUsuario())
-                .idCategoria(presupuesto.getIdCategoria())
-                .categoria(presupuesto.getCategoria())
-                .montoMaximo(presupuesto.getMontoMaximo())
-                .montoGastado(presupuesto.getMontoGastado())
-                .mes(presupuesto.getMes())
-                .anio(presupuesto.getAnio())
-                .build();
-    }
-
-    private Presupuesto toEntity(PresupuestoDto dto) {
-        return Presupuesto.builder()
-                .idPresupuesto(dto.getIdPresupuesto())
-                .idUsuario(dto.getIdUsuario())
-                .idCategoria(dto.getIdCategoria())
-                .categoria(dto.getCategoria())
-                .montoMaximo(dto.getMontoMaximo())
-                .montoGastado(dto.getMontoGastado())
-                .mes(dto.getMes())
-                .anio(dto.getAnio())
-                .build();
     }
 }

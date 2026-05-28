@@ -11,12 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entidad JPA que representa la tabla tbl_usuario.
- *
- * Importante: la BD usa el nombre de columna "contraseñaUsuario".
- * Por compatibilidad con Java/JSON usamos el campo contrasenaUsuario.
- */
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,4 +30,17 @@ public class Usuario {
 
     @Column(name = "contraseñaUsuario", nullable = false, length = 100)
     private String contrasenaUsuario;
+
+    @Builder.Default
+    @Column(name = "twoFactorEnabled", nullable = false)
+    private Boolean twoFactorEnabled = false;
+
+    @Column(name = "twoFactorSecretEncrypted", length = 1000)
+    private String twoFactorSecretEncrypted;
+
+    @Column(name = "twoFactorVerifiedAt")
+    private LocalDateTime twoFactorVerifiedAt;
+
+    @Column(name = "lastOtpTimestepUsed")
+    private Long lastOtpTimestepUsed;
 }

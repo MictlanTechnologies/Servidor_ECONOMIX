@@ -5,6 +5,7 @@ import sql.repository.UsuarioRepository;
 import sql.service.UsuarioService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public List<Usuario> getAll() {
@@ -37,6 +39,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Usuario save(Usuario usuario) {
+        if (usuario.getTwoFactorEnabled() == null) {
+            usuario.setTwoFactorEnabled(false);
+        }
+
+        if (usuario.getContrasenaUsuario() != null && !usuario.getContrasenaUsuario().startsWith("$2")) {
+            usuario.setContrasenaUsuario(passwordEncoder.encode(usuario.getContrasenaUsuario()));
+        }
+
         return usuarioRepository.save(usuario);
     }
 
@@ -49,7 +59,21 @@ public class UsuarioServiceImpl implements UsuarioService {
     public Usuario update(Integer id, Usuario usuario) {
         return usuarioRepository.findById(id)
                 .map(existing -> {
-                    BeanUtils.copyProperties(usuario, existing, "idUsuario");
+                    BeanUtils.copyProperties(
+                            usuario,
+                            existing,
+                            "idUsuario",
+                            "twoFactorEnabled",
+                            "twoFactorSecretEncrypted",
+                            "twoFactorVerifiedAt",
+                            "lastOtpTimestepUsed"
+                    );
+                    if (existing.getTwoFactorEnabled() == null) {
+                        existing.setTwoFactorEnabled(false);
+                    }
+                    if (existing.getContrasenaUsuario() != null && !existing.getContrasenaUsuario().startsWith("$2")) {
+                        existing.setContrasenaUsuario(passwordEncoder.encode(existing.getContrasenaUsuario()));
+                    }
                     return usuarioRepository.save(existing);
                 })
                 .orElse(null);

@@ -1,0 +1,81 @@
+package sql.auth.service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import sql.auth.model.RefreshToken;
+import sql.auth.repository.RefreshTokenRepository;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class TokenService {
+
+    private final RefreshTokenRepository refreshTokenRepository;
+
+    @Value("${economix.jwt.secret:change-this-jwt-secret-change-this-jwt-secret}")
+    private String jwtSecret;
+
+    public String generateAccessToken(Integer userId) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + 1000L * 60 * 30);
+        return Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .claim("userId", userId)
+                .setIssuedAt(now)
+                .setExpiration(expiration)
+                .signWith(signingKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Claims parseAccessToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public String issueRefreshToken(Integer userId) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .idUsuario(userId)
+                .token("rtk_" + UUID.randomUUID())
+                .expiresAt(LocalDateTime.now().plusDays(7))
+                .revoked(false)
+                .build();
+        return refreshTokenRepository.save(refreshToken).getToken();
+    }
+
+    public RefreshToken validateRefreshToken(String token) {
+        RefreshToken rt = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token inválido."));
+        if (Boolean.TRUE.equals(rt.getRevoked()) || rt.getExpiresAt().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expirado o revocado.");
+        }
+        return rt;
+    }
+
+    public void revokeByToken(String token) {
+        refreshTokenRepository.findByToken(token).ifPresent(rt -> {
+            rt.setRevoked(true);
+            refreshTokenRepository.save(rt);
+        });
+    }
+
+    private SecretKey signingKey() {
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes.length >= 32 ? keyBytes : String.format("%-32s", jwtSecret).getBytes(StandardCharsets.UTF_8));
+    }
+}
